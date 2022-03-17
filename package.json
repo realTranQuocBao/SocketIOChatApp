@@ -1,0 +1,15 @@
+{
+  "name": "HDHM_SimpleSocketChatApp",
+  "version": "0.0.1",
+  "description": "my first socket.io app 2022/03/11",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "dependencies": {
+    "express": "^4.17.3",
+    "socket.io": "^4.4.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  }
+}
