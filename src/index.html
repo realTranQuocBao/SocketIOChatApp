@@ -53,6 +53,11 @@
       #messages > li:nth-child(odd) {
         background: #efefef;
       }
+      .small {
+        font-size: small;
+        font-style: italic;
+        font-weight: normal;
+      }
     </style>
   </head>
   <body>
@@ -65,14 +70,32 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
+      var defaultInfo = {};
+      var infoSocketChatApp = localStorage.getItem("info-socketchatapp");
+      if (infoSocketChatApp == null || infoSocketChatApp.length < 2) {
+        var inputFullname = "";
+        while (inputFullname.length < 2) {
+          inputFullname = window.prompt(
+            "Họ và tên của bạn là gì? (suy nghĩ kỹ, không thể thay đổi)"
+          );
+        }
+        defaultInfo = { ...defaultInfo, fullname: inputFullname };
+        localStorage.setItem("info-socketchatapp", JSON.stringify(defaultInfo));
+      } else {
+        defaultInfo = {
+          ...defaultInfo,
+          fullname: JSON.parse(localStorage.getItem("info-socketchatapp"))
+            .fullname,
+        };
+      }
+
       var socket = io();
+      socket.emit("send-name", defaultInfo.fullname);
       var messages = document.getElementById("messages");
       var input = document.getElementById("input");
       var form = document.getElementById("form");
+
       form.addEventListener("submit", (e) => {
-        defaultInfo = {
-          name: "Bảo",
-        };
         e.preventDefault();
         if (input.value) {
           var msg = { ...defaultInfo, text: input.value };
@@ -81,12 +104,24 @@
           input.value = "";
         }
       });
-      socket.on("phatTinHieu", (tinHieu) => {
-        console.log("TinHieu", tinHieu);
+
+      socket.on("send-chat-message-admin", (msg) => {
+        var liElm = document.createElement("li");
+        liElm.textContent = `${msg.fullname} ${msg.text}`;
+        liElm.style.color = "red";
+        messages.appendChild(liElm);
+        window.scrollTo(0, document.body.scrollHeight);
       });
+
       socket.on("send-chat-message", (msg) => {
         var liElm = document.createElement("li");
-        liElm.textContent = `${msg.id} said: ${msg.text}`;
+        var spanUserElm = document.createElement("span");
+        var spanMsgElm = document.createElement("span");
+        spanUserElm.innerHTML = `<b>${msg.fullname} <span class="small">(id: ${msg.id}, ip: ${msg.ipClientV4})</span> said:</b><br>`;
+        spanMsgElm.textContent = `${msg.text}`;
+        // liElm.textContent = `${msg.fullname}<span>(id: ${msg.id}, ip: ${msg.ipClientV4})</span> said: ${msg.text}`;
+        liElm.appendChild(spanUserElm);
+        liElm.appendChild(spanMsgElm);
         messages.appendChild(liElm);
         window.scrollTo(0, document.body.scrollHeight);
       });
